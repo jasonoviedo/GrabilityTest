@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Crashlytics
 import MobileCoreServices
 
 class NetworkClient {
@@ -51,17 +50,6 @@ class NetworkClient {
     
     func getDefaultHeaders() -> [String:String]{
         let headers: [HTTPRequestHeader:String] = [:]
-//        [.CONTENT_TYPE: "application/json",
-//            .ACCEPT:"application/json",
-//            .APP_VERSION:(NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String),
-//            .SOURCE_APP:"kiwi",
-//            .OS_NAME:"ios",
-//            .OS_VERSION:iOSVersion,
-//            .DEVICE_LAT:CoreLocationController.coordinates.latitude,
-//            .DEVICE_LNG:CoreLocationController.coordinates.longitude,
-//            .DEVICE_ACC:CoreLocationController.coordinates.accuracy,
-//            .APP_LANGUAGE:"es",
-//            .APP_KEY:KiwiClient.API_KEY]
         
         var rHeaders:[String:String] = [:]
         for (key, value) in headers{
@@ -206,9 +194,7 @@ class NetworkClient {
     
     func handleNetworkResponseForPromise(promise:RequestPromise, data:NSData!, response:NSURLResponse!, error:NSError!){
         
-        //            println("Response: \(response)")
         let strData: String? = data != nil ? NSString(data: data, encoding: NSUTF8StringEncoding) as? String : nil
-        //            println("Body: \(strData)")
         
         let statusCode: Int = error != nil ? 0 :(response as? NSHTTPURLResponse)?.statusCode ?? 0
         
@@ -380,7 +366,6 @@ protocol NetworkClientHandler{
 }
 
 
-//import Crashlytics
 class DefaultErrorHandler: NetworkClientHandler{
     func onError(errorData:ErrorData) {
         print(errorData.humanReadableString())
@@ -394,7 +379,8 @@ class DefaultErrorHandler: NetworkClientHandler{
                 "Error.ResponseData":errorData.data ?? "",
                 "Error.Json":errorData.errorJson?.description ?? "",
                 "Error.Error.localizedDescription":errorData.error?.localizedDescription ?? ""]
-            UtilLogCustomEvent("ServerErrorOcurred", withCustomAttributes:atts)
+            print (atts)
+            //TODO log using some utility
         }
         
     }
@@ -403,54 +389,6 @@ class DefaultErrorHandler: NetworkClientHandler{
         //This is an error handler, no need to do anything
     }
 }
-//
-//import UIKit
-//
-//class ShowToUserErrorHandler : DefaultErrorHandler{
-//    
-//    weak var controller : UIViewController?
-//    
-//    init(controller:UIViewController){
-//        self.controller = controller
-//    }
-//    
-//    override func onError(errorData:ErrorData){
-//        if let ctrl = controller {
-//            UserAlertHelper.showDismisableWithTitle("Error", withMessage: errorData.errorMessage ?? "", fromController: ctrl)
-//        }
-//    }
-//    
-//}
-//
-//class CloseSessionErrorHandler : DefaultErrorHandler{
-//    
-//    weak var controller : UIViewController?
-//    
-//    init(controller:UIViewController){
-//        self.controller = controller
-//    }
-//    
-//    override func onError(errorData:ErrorData){
-//        let errorCode = errorData.errorJson?["code"] as? Int
-//        if errorCode >= 100 && errorCode <= 102 {
-//            let defaults = NSUserDefaults.standardUserDefaults()
-//            defaults.removeObjectForKey("token")
-//            defaults.removeObjectForKey("firstname")
-//            defaults.removeObjectForKey("lastname")
-//            defaults.removeObjectForKey("email")
-//            defaults.removeObjectForKey("number")
-//            ChatViewController.delete()
-//            controller?.dismissViewControllerAnimated(true, completion: {
-//                self.controller?.navigationController?.setViewControllers([SignUpViewController()], animated: true)
-//            })
-//            let delegate = UIApplication.sharedApplication().delegate as! AppDelegate
-//            delegate.getMessagesTimer?.invalidate()
-//            return
-//        }
-//        super.onError(errorData)
-//    }
-//    
-//}
 
 func UtilRunAfterDelay(delay: NSTimeInterval, block: dispatch_block_t) {
     let time = dispatch_time(DISPATCH_TIME_NOW, Int64(delay * Double(NSEC_PER_SEC)))
@@ -467,22 +405,6 @@ func UtilRunInUIThread(block: dispatch_block_t){
     dispatch_async(dispatch_get_main_queue()) {
         block()
     }
-}
-
-func UtilLogCustomEvent(event:String, withCustomAttributes attributes: [String:String] = [:]){
-    let defaults = NSUserDefaults.standardUserDefaults()
-    
-    let email = defaults.valueForKey("email") as? String ?? ""
-    let number = defaults.valueForKey("number") as? String ?? ""
-    let name = defaults.valueForKey("name") as? String ?? ""
-    var atts = ["name":name, "email":email, "number":number]
-    
-    for (k,v) in attributes {
-        atts[k] = v
-    }
-    
-    Answers.logCustomEventWithName(event,
-        customAttributes: atts)
 }
 
 import UIKit
@@ -521,7 +443,7 @@ class UtilMoveOnKeyboardShowHelper: NSObject{
         //Absolute topmost position of keyboard
         let kTop = ss.height - kbSize.height
         
-        //Absolute bottom most position of the field we want to move
+        //Absolute bottommost position of the field we want to move
         let tBottom = tf.minY + tf.height - contentViewOffset
         
         let movement = tBottom < kTop ? 0 : kTop - tBottom + offset
@@ -532,7 +454,7 @@ class UtilMoveOnKeyboardShowHelper: NSObject{
     
     func keyboardWillHide(notification: NSNotification){
         let sf = superView.frame
-        let bkRect =  CGRectMake(0, 0, sf.width, sf.height) //CGRectInset(textField.superview!.frame, 0, kbSize.height)
+        let bkRect =  CGRectMake(0, 0, sf.width, sf.height)
         superView.frame = bkRect
     }
 }
