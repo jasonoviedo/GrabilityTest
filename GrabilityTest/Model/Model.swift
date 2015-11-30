@@ -33,9 +33,9 @@ class Model{
             let objects = try managedObjectContext.executeFetchRequest(request)
             
             if let cachedApps = objects as? [GrabilityApp] {
-                apps.removeAll()
+                Model.apps.removeAll()
                 cachedApps.forEach{ (a) in
-                    apps.append(a)
+                    Model.apps.append(a)
                 }
             }
         } catch _ {
@@ -44,6 +44,7 @@ class Model{
     }
     
     static func get(callback: () -> Void){
+        
         let response = client.sendRequestUsingMethod(NetworkClient.HTTPMethod.GET, toEndpoint: "https://itunes.apple.com/us/rss/topfreeapplications/limit=20/json", withParams: nil)
         
         response.success{ ( data) in
